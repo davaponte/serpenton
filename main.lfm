@@ -1,0 +1,90 @@
+object MainForm: TMainForm
+  Left = 612
+  Height = 471
+  Top = 312
+  Width = 510
+  Caption = 'Serpenton - Another Snake Clone'
+  ClientHeight = 445
+  ClientWidth = 510
+  Menu = MainMenu
+  OnCreate = FormCreate
+  LCLVersion = '1.6.0.4'
+  object ScrollBox: TScrollBox
+    Left = 0
+    Height = 417
+    Top = 0
+    Width = 510
+    HorzScrollBar.Page = 1
+    VertScrollBar.Page = 1
+    Align = alClient
+    Color = clBlue
+    ParentColor = False
+    TabOrder = 0
+  end
+  object StatusBar: TStatusBar
+    Left = 0
+    Height = 28
+    Top = 417
+    Width = 510
+    Panels = <>
+  end
+  object ActionList: TActionList
+    left = 468
+    top = 16
+    object ActionLeft: TAction
+      Caption = 'ActionLeft'
+      OnExecute = ActionLeftExecute
+      ShortCut = 37
+    end
+    object ActionRight: TAction
+      Caption = 'ActionRight'
+      OnExecute = ActionRightExecute
+      ShortCut = 39
+    end
+    object ActionUp: TAction
+      Caption = 'ActionUp'
+      OnExecute = ActionUpExecute
+      ShortCut = 38
+    end
+    object ActionDown: TAction
+      Caption = 'ActionDown'
+      OnExecute = ActionDownExecute
+      ShortCut = 40
+    end
+    object ActionPause: TAction
+      Caption = 'ActionPause'
+      OnExecute = ActionPauseExecute
+      SecondaryShortCuts.Strings = (
+        'P'
+      )
+      ShortCut = 19
+    end
+  end
+  object MainMenu: TMainMenu
+    left = 368
+    top = 16
+    object MenuMain: TMenuItem
+      Caption = '&Main'
+      OnClick = MenuMainClick
+      object MenuStart: TMenuItem
+        Caption = 'Start game'
+        OnClick = MenuStartClick
+      end
+      object MenuItem2: TMenuItem
+        Caption = '-'
+      end
+      object MenuQuit: TMenuItem
+        Caption = 'Quit'
+        ShortCut = 32856
+        OnClick = MenuQuitClick
+      end
+    end
+  end
+  object Timer: TTimer
+    Enabled = False
+    Interval = 400
+    OnTimer = TimerTimer
+    left = 468
+    top = 84
+  end
+end
