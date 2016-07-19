@@ -1,4 +1,4 @@
- 
+
 unit main;
 
 {$mode objfpc}{$H+}
@@ -8,6 +8,10 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
   ActnList, Menus, ExtCtrls;
+
+const
+  MaxRows = 20;
+  MaxCols = 30;
 
 type
   TDirection = (GoLeft, GoRight, GoUp, GoDown);
@@ -45,8 +49,8 @@ type
     SnakeLength : byte;
     Direction : TDirection;
     Speed : integer;
-    SnakeWidth : integer;
-    GameBoard : array[1..30, 1..30] of TPiece;
+    SnakeSize : integer;
+    GameBoard : array[1..MaxRows, 1..MaxCols] of TPiece;
   public
     { public declarations }
   end;
@@ -77,16 +81,16 @@ begin
   end;
   Case Direction of
     GoLeft : begin
-      Snake[0].Left := Snake[0].Left - SnakeWidth;
+      Snake[0].Left := Snake[0].Left - SnakeSize;
     end;
     GoRight : begin
-      Snake[0].Left := Snake[0].Left + SnakeWidth;
+      Snake[0].Left := Snake[0].Left + SnakeSize;
     end;
     GoUp : begin
-      Snake[0].Top := Snake[0].Top - SnakeWidth;
+      Snake[0].Top := Snake[0].Top - SnakeSize;
     end;
     GoDown : begin
-      Snake[0].Top := Snake[0].Top + SnakeWidth;
+      Snake[0].Top := Snake[0].Top + SnakeSize;
     end;
   end;
 end;
@@ -103,10 +107,10 @@ begin
     Snake[c] := TShape.Create(Self);
     Snake[c].Brush.Color := clYellow;
     Snake[c].Pen.Color := clYellow;
-    Snake[c].Left := SnakeWidth * ((Length(Snake) - 1) - c);
+    Snake[c].Left := SnakeSize * ((Length(Snake) - 1) - c);
     Snake[c].Top := 0;
-    Snake[c].Width := SnakeWidth;
-    Snake[c].Height := SnakeWidth;
+    Snake[c].Width := SnakeSize;
+    Snake[c].Height := SnakeSize;
     Snake[c].Parent := ScrollBox;
 
   end;
@@ -136,52 +140,58 @@ end;
 
 procedure TMainForm.FormCreate(Sender : TObject);
 var
-  c : integer;
+  Row, Col : integer;
   Limit : TShape;
 begin
-  SnakeWidth := 20;
-  ScrollBox.Width := Length(GameBoard[1]) * SnakeWidth;
-  ScrollBox.Height := Length(GameBoard[1]) * SnakeWidth;
+  SnakeSize := 32;
+//  Width := MaxCols * SnakeSize; //Sin ajuste extra porque el BorderStyle en el ScrollBox está en bsNone
+//  Height := MaxRows * SnakeSize + MainMenu.Height + 20; //GetSystemMetrics(SM_CYCAPTION)
 
-  Limit := TShape.Create(Self);
-  Limit.Brush.Color := clRed;
-  Limit.Pen.Color := clRed;
-  Limit.Left := 0;
-  Limit.Top := 0;
-  Limit.Width := ScrollBox.Width;
-  Limit.Height := SnakeWidth;
-  Limit.Parent := ScrollBox;
+//  WriteLn('MainMenu.Height: ', MainMenu.Height);
+  ClientHeight := MaxRows * SnakeSize + MainMenu.Height + 20; //Hay que ver cómo arreglar esto
+  ClientWidth := MaxCols * SnakeSize;
 
-  Limit := TShape.Create(Self);
-  Limit.Brush.Color := clRed;
-  Limit.Pen.Color := clRed;
-  Limit.Left := 0;
-  Limit.Top := 0;
-  Limit.Width := SnakeWidth;
-  Limit.Height := ScrollBox.Height;
-  Limit.Parent := ScrollBox;
+  For Row := 1 to MaxRows do begin
+    GameBoard[Row][1] := Border;
+    Limit := TShape.Create(Self);
+    Limit.Brush.Color := clRed;
+    Limit.Pen.Color := clRed;
+    Limit.Left := 0;
+    Limit.Top := (Row - 1) * SnakeSize;
+    Limit.Width := SnakeSize;
+    Limit.Height := SnakeSize;
+    Limit.Parent := ScrollBox;
 
-  Limit := TShape.Create(Self);
-  Limit.Brush.Color := clRed;
-  Limit.Pen.Color := clRed;
-  Limit.Left := 0;
-  Limit.Top := ScrollBox.Width - SnakeWidth;
-  Limit.Width := ScrollBox.Width;
-  Limit.Height := SnakeWidth;
-  Limit.Parent := ScrollBox;
+    GameBoard[Row][MaxCols] := Border;
+    Limit := TShape.Create(Self);
+    Limit.Brush.Color := clRed;
+    Limit.Pen.Color := clRed;
+    Limit.Left := (MaxCols - 1) * SnakeSize;
+    Limit.Top := (Row - 1) * SnakeSize;
+    Limit.Width := SnakeSize;
+    Limit.Height := SnakeSize;
+    Limit.Parent := ScrollBox;
+  end;
+  For Col := 1 + 1 to MaxCols - 1 do begin
+    GameBoard[1][Col] := Border;
+    Limit := TShape.Create(Self);
+    Limit.Brush.Color := clRed;
+    Limit.Pen.Color := clRed;
+    Limit.Left := (Col - 1) * SnakeSize;
+    Limit.Top := 0;
+    Limit.Width := SnakeSize;
+    Limit.Height := SnakeSize;
+    Limit.Parent := ScrollBox;
 
-  Limit := TShape.Create(Self);
-  Limit.Brush.Color := clRed;
-  Limit.Pen.Color := clRed;
-  Limit.Left := ScrollBox.Width - SnakeWidth;
-  Limit.Top := 0;
-  Limit.Width := SnakeWidth;
-  Limit.Height := ScrollBox.Height;
-  Limit.Parent := ScrollBox;
-
-  For c := Low(GameBoard[1]) to High(GameBoard[1]) do begin
-    GameBoard[1][c] := Border;
-    GameBoard[Length(GameBoard[1])][c] := Border;
+    GameBoard[MaxRows][Col] := Border;
+    Limit := TShape.Create(Self);
+    Limit.Brush.Color := clRed;
+    Limit.Pen.Color := clRed;
+    Limit.Left := (Col - 1) * SnakeSize;
+    Limit.Top := (MaxRows - 1) * SnakeSize;
+    Limit.Width := SnakeSize;
+    Limit.Height := SnakeSize;
+    Limit.Parent := ScrollBox;
   end;
 end;
 
