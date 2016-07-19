@@ -15,7 +15,7 @@ const
 
 type
   TDirection = (GoLeft, GoRight, GoUp, GoDown);
-  TPiece = (Blank, Border, Snake, Obstacle, Prize);
+  TPiece = (Blank, Border, Snakes, Obstacle, Prize);
 
   { TMainForm }
 
@@ -33,7 +33,7 @@ type
     MenuMain : TMenuItem;
     ScrollBox : TScrollBox;
     StatusBar : TStatusBar;
-    Timer : TTimer;
+    GameLoop : TTimer;
     procedure ActionDownExecute(Sender : TObject);
     procedure ActionLeftExecute(Sender : TObject);
     procedure ActionPauseExecute(Sender : TObject);
@@ -43,7 +43,7 @@ type
     procedure MenuQuitClick(Sender : TObject);
     procedure MenuStartClick(Sender : TObject);
     procedure MenuMainClick(Sender : TObject);
-    procedure TimerTimer(Sender : TObject);
+    procedure GameLoopTimer(Sender : TObject);
   private
     Snake : array of TShape;
     SnakeLength : byte;
@@ -69,11 +69,25 @@ begin
 
 end;
 
-procedure TMainForm.TimerTimer(Sender : TObject);
+procedure TMainForm.GameLoopTimer(Sender : TObject);
 var
-  c : integer;
+  c, Row, Col    : integer;
+  NewRow, NewCol : integer;
 begin
+//Chequeo de movimientos imposibles
+//TODO:  If (Direction in [GoRight, GoLeft]) then Direction := GoRight;
+
+//Borrado de pantalla...
   ScrollBox.Canvas.Clear;
+//...y del array (excluyendo el borde)
+  For Row := 2 to MaxRows - 1 do
+    For Col := 2 to MaxCols - 1 do
+      If (GameBoard[Row, Col] = Snakes) then
+        GameBoard[Row, Col] := Blank;
+
+//Chequeo de colisión con borde
+
+
 //  For c := 1 to
   For c := Length(Snake) - 1 downto 1 do begin
     Snake[c].Left := Snake[c - 1].Left;
@@ -98,44 +112,29 @@ end;
 procedure TMainForm.MenuStartClick(Sender : TObject);
 var
   c : byte;
+  BoardCol, BoardRow : integer;
 //  cl : array[0..2] of TColor = (clYellow, clLime, clNavy);
 begin
   If (Length(Snake) > 0) then
     For c := Low(Snake) to Length(Snake) - 1 do Snake[c].Free;
-  SetLength(Snake, 10);
+  SetLength(Snake, 3);
   For c := Low(Snake) to Length(Snake) - 1 do begin
     Snake[c] := TShape.Create(Self);
     Snake[c].Brush.Color := clYellow;
     Snake[c].Pen.Color := clYellow;
-    Snake[c].Left := SnakeSize * ((Length(Snake) - 1) - c);
-    Snake[c].Top := 0;
+    BoardCol := MaxCols div 6;
+    BoardRow := MaxRows div 2;
+    Snake[c].Left := (BoardCol * SnakeSize) + SnakeSize * ((Length(Snake) - 1) - c);
+    Snake[c].Top := BoardRow * SnakeSize;
     Snake[c].Width := SnakeSize;
     Snake[c].Height := SnakeSize;
     Snake[c].Parent := ScrollBox;
-
+    GameBoard[BoardRow, BoardCol] := Snakes;
   end;
-  Direction := GoRight;
+  Direction := GoUp;
   Speed := 400;
-  Timer.Interval := Speed;
-  Timer.Enabled := True;
-end;
-
-procedure TMainForm.ActionPauseExecute(Sender : TObject);
-begin
-  WriteLn('TOGGLE PAUSED: <P> OR <PAUSE> PRESSED');
-  Timer.Enabled := Not Timer.Enabled;
-end;
-
-procedure TMainForm.ActionRightExecute(Sender : TObject);
-begin
-  WriteLn('RIGHT KEY PRESSED');
-  If Not(Direction in [GoRight, GoLeft]) then Direction := GoRight;
-end;
-
-procedure TMainForm.ActionUpExecute(Sender : TObject);
-begin
-  WriteLn('UP KEY PRESSED');
-  If Not(Direction in [GoUp, GoDown]) then Direction := GoUp;
+  GameLoop.Interval := Speed;
+  GameLoop.Enabled := True;
 end;
 
 procedure TMainForm.FormCreate(Sender : TObject);
@@ -148,6 +147,7 @@ begin
 //  Height := MaxRows * SnakeSize + MainMenu.Height + 20; //GetSystemMetrics(SM_CYCAPTION)
 
 //  WriteLn('MainMenu.Height: ', MainMenu.Height);
+
   ClientHeight := MaxRows * SnakeSize + MainMenu.Height + 20; //Hay que ver cómo arreglar esto
   ClientWidth := MaxCols * SnakeSize;
 
@@ -197,8 +197,26 @@ end;
 
 procedure TMainForm.MenuQuitClick(Sender : TObject);
 begin
-  Timer.Enabled := False;
+  GameLoop.Enabled := False;
   Close;
+end;
+
+procedure TMainForm.ActionPauseExecute(Sender : TObject);
+begin
+  WriteLn('TOGGLE PAUSED: <P> OR <PAUSE> PRESSED');
+  GameLoop.Enabled := Not GameLoop.Enabled;
+end;
+
+procedure TMainForm.ActionRightExecute(Sender : TObject);
+begin
+  WriteLn('RIGHT KEY PRESSED');
+  If Not(Direction in [GoRight, GoLeft]) then Direction := GoRight;
+end;
+
+procedure TMainForm.ActionUpExecute(Sender : TObject);
+begin
+  WriteLn('UP KEY PRESSED');
+  If Not(Direction in [GoUp, GoDown]) then Direction := GoUp;
 end;
 
 procedure TMainForm.ActionLeftExecute(Sender : TObject);
