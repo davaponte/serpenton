@@ -12,10 +12,12 @@ uses
 const
   MaxRows = 20;
   MaxCols = 30;
+  BlockSize = 32;
+  SnakeSize = 32;
 
 type
   TDirection = (GoLeft, GoRight, GoUp, GoDown);
-  TPiece = (Blank, Border, Snakes, Obstacle, Prize);
+  TPiece = (Snake1, Snake2, Snake3, Snake4, Blank, Border, Obstacle, Prize);
 
   { TMainForm }
 
@@ -27,11 +29,13 @@ type
     ActionLeft : TAction;
     ActionList : TActionList;
     MainMenu : TMainMenu;
+    MenuItem1 : TMenuItem;
+    MenuItem3 : TMenuItem;
     MenuStart : TMenuItem;
     MenuItem2 : TMenuItem;
     MenuQuit : TMenuItem;
     MenuMain : TMenuItem;
-    ScrollBox : TScrollBox;
+    PaintBox : TPaintBox;
     StatusBar : TStatusBar;
     GameLoop : TTimer;
     procedure ActionDownExecute(Sender : TObject);
@@ -40,6 +44,7 @@ type
     procedure ActionRightExecute(Sender : TObject);
     procedure ActionUpExecute(Sender : TObject);
     procedure FormCreate(Sender : TObject);
+    procedure MenuItem3Click(Sender : TObject);
     procedure MenuQuitClick(Sender : TObject);
     procedure MenuStartClick(Sender : TObject);
     procedure MenuMainClick(Sender : TObject);
@@ -49,8 +54,9 @@ type
     SnakeLength : byte;
     Direction : TDirection;
     Speed : integer;
-    SnakeSize : integer;
     GameBoard : array[1..MaxRows, 1..MaxCols] of TPiece;
+    procedure DisplayBoard;
+    procedure Debug_DisplayBoard;
   public
     { public declarations }
   end;
@@ -78,11 +84,11 @@ begin
 //TODO:  If (Direction in [GoRight, GoLeft]) then Direction := GoRight;
 
 //Borrado de pantalla...
-  ScrollBox.Canvas.Clear;
+  PaintBox.Canvas.Clear;
 //...y del array (excluyendo el borde)
   For Row := 2 to MaxRows - 1 do
     For Col := 2 to MaxCols - 1 do
-      If (GameBoard[Row, Col] = Snakes) then
+      If (GameBoard[Row, Col] = Snake1) then
         GameBoard[Row, Col] := Blank;
 
 //Chequeo de colisión con borde
@@ -109,12 +115,61 @@ begin
   end;
 end;
 
+procedure TMainForm.DisplayBoard;
+var
+  Row, Col : Integer;
+  Row2Y, Col2X : Integer;
+begin
+  For Row := 1 to MaxRows do begin
+    Row2Y := (Row - 1) * BlockSize;
+    For Col := 1 to MaxCols do begin
+      Col2X := (Col - 1) * BlockSize;
+      Case GameBoard[Row, Col] of
+        Snake1   : PaintBox.Canvas.Brush.Color := RGBToColor($E8, 00, 00);
+        Snake2   : PaintBox.Canvas.Brush.Color := RGBToColor(00, 00, $DC);
+        Snake3   : PaintBox.Canvas.Brush.Color := RGBToColor($C0, $D0, $74);
+        Snake4   : PaintBox.Canvas.Brush.Color := RGBToColor($FC, $E0, $18);
+        Blank    : PaintBox.Canvas.Brush.Color := RGBToColor($A8, $A8, $A8);
+        Border   : PaintBox.Canvas.Brush.Color := RGBToColor(00, $B0, 00);
+        Obstacle : PaintBox.Canvas.Brush.Color := RGBToColor($FC, $FC, $FC);
+        Prize    : PaintBox.Canvas.Brush.Color := RGBToColor($E6, $D9, $B6);
+      end;
+      PaintBox.Canvas.Pen.Color := PaintBox.Canvas.Brush.Color;
+      PaintBox.Canvas.Rectangle(Col2X, Row2Y, Col2X + BlockSize, Row2Y + BlockSize);
+    end;
+    WriteLn;
+  end;
+end;
+
+procedure TMainForm.Debug_DisplayBoard;
+var
+  Row, Col : Integer;
+begin
+  WriteLn;
+  For Row := 1 to MaxRows do begin
+    For Col := 1 to MaxCols do begin
+      Case GameBoard[Row, Col] of
+        Snake1   : Write('1' : 3);
+        Snake2   : Write('2' : 3);
+        Snake3   : Write('3' : 3);
+        Snake4   : Write('4' : 3);
+        Blank    : Write('9' : 3);
+        Border   : Write('0' : 3);
+        Obstacle : Write('+' : 3);
+        Prize    : Write('P' : 3);
+      end;
+    end;
+    WriteLn;
+  end;
+end;
+
 procedure TMainForm.MenuStartClick(Sender : TObject);
 var
   c : byte;
   BoardCol, BoardRow : integer;
 //  cl : array[0..2] of TColor = (clYellow, clLime, clNavy);
 begin
+{
   If (Length(Snake) > 0) then
     For c := Low(Snake) to Length(Snake) - 1 do Snake[c].Free;
   SetLength(Snake, 3);
@@ -129,12 +184,14 @@ begin
     Snake[c].Width := SnakeSize;
     Snake[c].Height := SnakeSize;
     Snake[c].Parent := ScrollBox;
-    GameBoard[BoardRow, BoardCol] := Snakes;
+    GameBoard[BoardRow, BoardCol + c - 1] := Snake1;
   end;
+}
   Direction := GoUp;
   Speed := 400;
   GameLoop.Interval := Speed;
   GameLoop.Enabled := True;
+  Debug_DisplayBoard;
 end;
 
 procedure TMainForm.FormCreate(Sender : TObject);
@@ -142,7 +199,9 @@ var
   Row, Col : integer;
   Limit : TShape;
 begin
-  SnakeSize := 32;
+  For Row := 1 to MaxRows do
+    For Col := 1 to MaxCols do
+      GameBoard[Row, Col] := Blank;
 //  Width := MaxCols * SnakeSize; //Sin ajuste extra porque el BorderStyle en el ScrollBox está en bsNone
 //  Height := MaxRows * SnakeSize + MainMenu.Height + 20; //GetSystemMetrics(SM_CYCAPTION)
 
@@ -153,6 +212,7 @@ begin
 
   For Row := 1 to MaxRows do begin
     GameBoard[Row][1] := Border;
+{
     Limit := TShape.Create(Self);
     Limit.Brush.Color := clRed;
     Limit.Pen.Color := clRed;
@@ -161,8 +221,9 @@ begin
     Limit.Width := SnakeSize;
     Limit.Height := SnakeSize;
     Limit.Parent := ScrollBox;
-
+}
     GameBoard[Row][MaxCols] := Border;
+{
     Limit := TShape.Create(Self);
     Limit.Brush.Color := clRed;
     Limit.Pen.Color := clRed;
@@ -171,9 +232,11 @@ begin
     Limit.Width := SnakeSize;
     Limit.Height := SnakeSize;
     Limit.Parent := ScrollBox;
+}
   end;
   For Col := 1 + 1 to MaxCols - 1 do begin
     GameBoard[1][Col] := Border;
+{
     Limit := TShape.Create(Self);
     Limit.Brush.Color := clRed;
     Limit.Pen.Color := clRed;
@@ -182,8 +245,9 @@ begin
     Limit.Width := SnakeSize;
     Limit.Height := SnakeSize;
     Limit.Parent := ScrollBox;
-
+}
     GameBoard[MaxRows][Col] := Border;
+{
     Limit := TShape.Create(Self);
     Limit.Brush.Color := clRed;
     Limit.Pen.Color := clRed;
@@ -192,7 +256,13 @@ begin
     Limit.Width := SnakeSize;
     Limit.Height := SnakeSize;
     Limit.Parent := ScrollBox;
+}
   end;
+end;
+
+procedure TMainForm.MenuItem3Click(Sender : TObject);
+begin
+  DisplayBoard;
 end;
 
 procedure TMainForm.MenuQuitClick(Sender : TObject);
