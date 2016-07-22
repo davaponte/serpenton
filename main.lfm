@@ -1,32 +1,33 @@
 object MainForm: TMainForm
   Left = 612
-  Height = 471
+  Height = 689
   Top = 312
-  Width = 510
+  Width = 720
   Caption = 'Serpenton - Another Snake Clone'
-  ClientHeight = 445
-  ClientWidth = 510
+  ClientHeight = 663
+  ClientWidth = 720
   Menu = MainMenu
   OnCreate = FormCreate
+  Position = poDesktopCenter
   LCLVersion = '1.6.0.4'
-  object ScrollBox: TScrollBox
-    Left = 0
-    Height = 417
-    Top = 0
-    Width = 510
-    HorzScrollBar.Page = 1
-    VertScrollBar.Page = 1
-    Align = alClient
-    Color = clBlue
-    ParentColor = False
-    TabOrder = 0
-  end
   object StatusBar: TStatusBar
     Left = 0
     Height = 28
-    Top = 417
-    Width = 510
-    Panels = <>
+    Top = 635
+    Width = 720
+    Panels = <    
+      item
+        Text = 'Ready...'
+        Width = 50
+      end>
+    SimplePanel = False
+  end
+  object PaintBox: TPaintBox
+    Left = 0
+    Height = 635
+    Top = 0
+    Width = 720
+    Align = alClient
   end
   object ActionList: TActionList
     left = 468
@@ -79,11 +80,18 @@ object MainForm: TMainForm
         OnClick = MenuQuitClick
       end
     end
+    object MenuItem1: TMenuItem
+      Caption = '&Tests'
+      object MenuItem3: TMenuItem
+        Caption = '&Paint'
+        OnClick = MenuItem3Click
+      end
+    end
   end
-  object Timer: TTimer
+  object GameLoop: TTimer
     Enabled = False
-    Interval = 400
-    OnTimer = TimerTimer
+    Interval = 250
+    OnTimer = GameLoopTimer
     left = 468
     top = 84
   end
